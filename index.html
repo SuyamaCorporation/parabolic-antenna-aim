@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>パラボラアンテナ指向性計算機</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen">
+  <div class="max-w-3xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold text-center text-slate-800 mb-2">パラボラアンテナ指向性計算機</h1>
+    <p class="text-center text-gray-500 text-sm mb-6">口径・周波数から利得(dBi)・半値角を計算。衛星受信の最適仰角・方位角も算出。</p>
+
+    <!-- アンテナ特性計算 -->
+    <div class="bg-white rounded-xl shadow p-6 mb-6">
+      <h2 class="text-lg font-semibold text-gray-700 mb-4">アンテナ特性計算</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label for="diameter" class="block text-sm font-medium text-gray-600 mb-1">口径 D (m)</label>
+          <input id="diameter" type="number" value="0.45" step="0.01" min="0.01" max="100"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+            tabindex="1" aria-label="パラボラアンテナ口径（メートル）" />
+        </div>
+        <div>
+          <label for="frequency" class="block text-sm font-medium text-gray-600 mb-1">周波数 f (GHz)</label>
+          <input id="frequency" type="number" value="11.7" step="0.1" min="0.1" max="100"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+            tabindex="2" aria-label="周波数（ギガヘルツ）" />
+        </div>
+        <div>
+          <label for="efficiency" class="block text-sm font-medium text-gray-600 mb-1">開口効率 η</label>
+          <input id="efficiency" type="number" value="0.6" step="0.01" min="0.1" max="1.0"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+            tabindex="3" aria-label="開口効率（0.1〜1.0）" />
+        </div>
+      </div>
+      <div class="mt-4">
+        <button id="calcAntennaBtn"
+          class="bg-slate-700 hover:bg-slate-800 text-white font-semibold px-6 py-2 rounded-lg text-sm transition"
+          tabindex="4" aria-label="アンテナ特性を計算する">
+          計算する
+        </button>
+      </div>
+
+      <!-- 結果 -->
+      <div id="antennaResult" class="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-4 hidden">
+        <div class="bg-slate-50 rounded-xl p-4 text-center">
+          <div class="text-xs text-gray-500 mb-1">波長 λ</div>
+          <div id="wavelengthVal" class="text-2xl font-bold text-slate-700"></div>
+          <div class="text-xs text-gray-400">m</div>
+        </div>
+        <div class="bg-blue-50 rounded-xl p-4 text-center">
+          <div class="text-xs text-gray-500 mb-1">利得 G</div>
+          <div id="gainVal" class="text-2xl font-bold text-blue-700"></div>
+          <div class="text-xs text-gray-400">dBi</div>
+        </div>
+        <div class="bg-green-50 rounded-xl p-4 text-center">
+          <div class="text-xs text-gray-500 mb-1">半値角 HPBW</div>
+          <div id="hpbwVal" class="text-2xl font-bold text-green-700"></div>
+          <div class="text-xs text-gray-400">度</div>
+        </div>
+      </div>
+
+      <div class="mt-3 bg-gray-50 rounded-lg p-3 text-xs text-gray-500 space-y-1">
+        <p><strong>計算式:</strong></p>
+        <p>利得(dBi) = 10 × log₁₀(η × (π × D / λ)²)</p>
+        <p>半値角(°) = 70 × λ / D</p>
+        <p>波長(m) = c / f　（c = 3×10⁸ m/s）</p>
+      </div>
+    </div>
+
+    <!-- 衛星仰角・方位角計算 -->
+    <div class="bg-white rounded-xl shadow p-6">
+      <h2 class="text-lg font-semibold text-gray-700 mb-4">衛星仰角・方位角計算</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label for="lat" class="block text-sm font-medium text-gray-600 mb-1">受信地点 緯度 (°N)</label>
+          <input id="lat" type="number" value="35.7" step="0.01" min="-90" max="90"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+            tabindex="5" aria-label="受信地点の緯度（北緯）" />
+        </div>
+        <div>
+          <label for="lon" class="block text-sm font-medium text-gray-600 mb-1">受信地点 経度 (°E)</label>
+          <input id="lon" type="number" value="139.7" step="0.01" min="-180" max="180"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+            tabindex="6" aria-label="受信地点の経度（東経）" />
+        </div>
+        <div>
+          <label for="satLon" class="block text-sm font-medium text-gray-600 mb-1">衛星経度 (°E)</label>
+          <input id="satLon" type="number" value="110.0" step="0.1" min="-180" max="180"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+            tabindex="7" aria-label="衛星の経度（東経）" />
+        </div>
+      </div>
+      <div class="mt-3 mb-3">
+        <label class="block text-xs text-gray-500 mb-1">プリセット衛星</label>
+        <div class="flex flex-wrap gap-2">
+          <button class="preset-btn text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full" tabindex="8"
+            data-lon="110.0" aria-label="BS/CS衛星 東経110度をプリセット">BS/CS 110°E</button>
+          <button class="preset-btn text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full" tabindex="9"
+            data-lon="124.0" aria-label="CS衛星 東経124度をプリセット">CS 124°E</button>
+          <button class="preset-btn text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full" tabindex="10"
+            data-lon="128.0" aria-label="衛星 東経128度をプリセット">128°E</button>
+        </div>
+      </div>
+      <button id="calcSatBtn"
+        class="bg-slate-700 hover:bg-slate-800 text-white font-semibold px-6 py-2 rounded-lg text-sm transition"
+        tabindex="11" aria-label="衛星仰角・方位角を計算する">
+        計算する
+      </button>
+
+      <div id="satResult" class="mt-5 hidden">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="bg-blue-50 rounded-xl p-4 text-center">
+            <div class="text-xs text-gray-500 mb-1">仰角 (Elevation)</div>
+            <div id="elevVal" class="text-3xl font-bold text-blue-700"></div>
+            <div class="text-xs text-gray-400">度</div>
+          </div>
+          <div class="bg-orange-50 rounded-xl p-4 text-center">
+            <div class="text-xs text-gray-500 mb-1">方位角 (Azimuth)</div>
+            <div id="azimVal" class="text-3xl font-bold text-orange-700"></div>
+            <div class="text-xs text-gray-400">度（真北基準・時計回り）</div>
+          </div>
+        </div>
+        <p id="satNote" class="text-xs text-gray-500 mt-3"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    const C = 3e8; // 光速 m/s
+
+    function calcAntenna() {
+      const D = parseFloat(document.getElementById('diameter').value);
+      const f = parseFloat(document.getElementById('frequency').value);
+      const eta = parseFloat(document.getElementById('efficiency').value);
+
+      if (isNaN(D) || isNaN(f) || isNaN(eta) || D <= 0 || f <= 0 || eta <= 0 || eta > 1) {
+        alert('正しい値を入力してください。');
+        return;
+      }
+
+      const lambda = C / (f * 1e9);
+      const gain_linear = eta * Math.pow(Math.PI * D / lambda, 2);
+      const gain_dBi = 10 * Math.log10(gain_linear);
+      const hpbw = 70 * lambda / D;
+
+      document.getElementById('wavelengthVal').textContent = (lambda * 100).toFixed(2) + ' cm';
+      document.getElementById('gainVal').textContent = gain_dBi.toFixed(1);
+      document.getElementById('hpbwVal').textContent = hpbw.toFixed(2);
+
+      document.getElementById('antennaResult').classList.remove('hidden');
+    }
+
+    function calcSatellite() {
+      const lat = parseFloat(document.getElementById('lat').value);
+      const lon = parseFloat(document.getElementById('lon').value);
+      const satLon = parseFloat(document.getElementById('satLon').value);
+
+      if (isNaN(lat) || isNaN(lon) || isNaN(satLon)) {
+        alert('正しい値を入力してください。');
+        return;
+      }
+
+      const latR = lat * Math.PI / 180;
+      const deltaLon = (satLon - lon) * Math.PI / 180;
+
+      // 静止軌道衛星 (高度 35786 km, 地球半径 6371 km)
+      const RE = 6371;
+      const GEO = 42164; // 地球中心からの距離 km
+
+      // 仰角計算
+      const cosCentral = Math.cos(latR) * Math.cos(deltaLon);
+      const elevation = Math.atan2(
+        cosCentral - RE / GEO,
+        Math.sqrt(1 - cosCentral * cosCentral)
+      ) * 180 / Math.PI;
+
+      // 方位角計算（真北基準・時計回り）
+      const y = Math.sin(deltaLon);
+      const x = Math.tan(latR) * Math.sqrt(1 - cosCentral * cosCentral) - cosCentral * (lat >= 0 ? 1 : -1);
+      let azimuth = Math.atan2(y, -x) * 180 / Math.PI;
+      if (azimuth < 0) azimuth += 360;
+
+      document.getElementById('elevVal').textContent = elevation.toFixed(1);
+      document.getElementById('azimVal').textContent = azimuth.toFixed(1);
+
+      let note = '';
+      if (elevation < 0) {
+        note = '⚠️ 仰角が負のため、この地点からこの衛星は地平線以下にあります（受信不可）。';
+      } else if (elevation < 10) {
+        note = '⚠️ 仰角が低いため、受信に障害物の影響を受けやすい可能性があります。';
+      }
+      document.getElementById('satNote').textContent = note;
+      document.getElementById('satResult').classList.remove('hidden');
+    }
+
+    document.getElementById('calcAntennaBtn').addEventListener('click', calcAntenna);
+    document.getElementById('calcSatBtn').addEventListener('click', calcSatellite);
+
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('satLon').value = btn.dataset.lon;
+      });
+    });
+
+    // 初回計算
+    calcAntenna();
+  </script>
+</body>
+</html>
